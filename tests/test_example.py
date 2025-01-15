@@ -1,4 +1,4 @@
-from hf_repo_ls.match_image_with_metadata import add_one
+from hf_repo_ls_la.match_image_with_metadata import add_one
 
 
 def test_add_one():
