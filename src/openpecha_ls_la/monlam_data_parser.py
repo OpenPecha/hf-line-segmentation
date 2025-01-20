@@ -3,10 +3,7 @@ import json
 import xml.etree.ElementTree as ET
 
 
-def parse_page_attributes(page, namespace):
-    """
-    Extract attributes from the Page tag.
-    """
+def extract_image_info(page, namespace):
     source_image = page.attrib.get("imageFilename")
     image_width = page.attrib.get("imageWidth")
     image_height = page.attrib.get("imageHeight")
@@ -18,7 +15,7 @@ def parse_page_attributes(page, namespace):
 
 def extract_text_lines(text_regions, namespace, source_image):
     """
-    Extract text lines and their coordinates from paragraph-type TextRegions.
+    extract lines and their coords from paragraph-type TextRegions.
     """
     line_data = []
     line_count = 1
@@ -42,16 +39,13 @@ def extract_text_lines(text_regions, namespace, source_image):
 
 
 def process_xml_file(file_path, namespace):
-    """
-    Parse an XML file and extract data for JSONL output.
-    """
     tree = ET.parse(file_path)
     root_element = tree.getroot()
 
     page = root_element.find("ns:Page", namespace)
     if page is None:
         return []
-    source_image, image_size, image_url = parse_page_attributes(page, namespace)
+    source_image, image_size, image_url = extract_image_info(page, namespace)
     text_regions = page.findall("ns:TextRegion", namespace)
     line_data = extract_text_lines(text_regions, namespace, source_image)
     for line in line_data:
