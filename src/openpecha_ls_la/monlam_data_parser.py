@@ -1,0 +1,95 @@
+import os
+import json
+import xml.etree.ElementTree as ET
+
+
+def parse_page_attributes(page, namespace):
+    """
+    Extract attributes from the Page tag.
+    """
+    source_image = page.attrib.get("imageFilename")
+    image_width = page.attrib.get("imageWidth")
+    image_height = page.attrib.get("imageHeight")
+    image_size = f"{image_width}x{image_height}"
+    image_url = f"https://s3.amazonaws.com/monlam.ai.ocr/LineSegmentation/coordinate_image_data/source_image/{
+        source_image}"
+    return source_image, image_size, image_url
+
+
+def extract_text_lines(text_regions, namespace, source_image):
+    """
+    Extract text lines and their coordinates from paragraph-type TextRegions.
+    """
+    line_data = []
+    line_count = 1
+
+    for region in text_regions:
+        custom_attr = region.attrib.get("custom", "")
+        if "type:paragraph" in custom_attr:
+            text_lines = region.findall("ns:TextLine", namespace)
+            for line in text_lines:
+                line_id = f"{os.path.splitext(source_image)[0]}_{line_count}"
+                coords = line.find("ns:Coords", namespace)
+                if coords is not None:
+                    points = coords.attrib.get("points", "")
+                    line_data.append({
+                        "line_id": line_id,
+                        "line_coordinates": points
+                    })
+                    line_count += 1
+
+    return line_data
+
+
+def process_xml_file(file_path, namespace):
+    """
+    Parse an XML file and extract data for JSONL output.
+    """
+    tree = ET.parse(file_path)
+    root_element = tree.getroot()
+
+    page = root_element.find("ns:Page", namespace)
+    if page is None:
+        return []
+    source_image, image_size, image_url = parse_page_attributes(page, namespace)
+    text_regions = page.findall("ns:TextRegion", namespace)
+    line_data = extract_text_lines(text_regions, namespace, source_image)
+    for line in line_data:
+        line.update({
+            "source_image": source_image,
+            "image_size": image_size,
+            "image_url": image_url,
+            "method": "Transkribus"
+        })
+
+    return line_data
+
+
+def process_directory(input_dir, output_file):
+    namespace = {'ns': 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'}
+    all_data = []
+
+    for root, dirs, files in os.walk(input_dir):
+        if "page" in root:
+            for file in files:
+                if file.endswith(".xml"):
+                    file_path = os.path.join(root, file)
+                    data = process_xml_file(file_path, namespace)
+                    all_data.extend(data)
+
+    with open(output_file, 'w', encoding='utf-8') as f:
+        for entry in all_data:
+            f.write(json.dumps(entry) + '\n')
+
+
+def main():
+
+    input_directory = "data/monlam_data"
+    output_file = "data/output/monlam_data.jsonl"
+
+    process_directory(input_directory, output_file)
+    print(f"Data has been successfully written to {output_file}")
+
+
+if __name__ == "__main__":
+    main()
