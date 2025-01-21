@@ -13,27 +13,42 @@ def extract_image_info(page, namespace):
     return source_image, image_size, image_url
 
 
-def extract_line_info(text_regions, namespace, source_image):
+def extract_text_lines(text_regions, namespace, source_image):
     """
-    extract lines and their coords from paragraph-type TextRegions.
+    extract lines and coordinates from TextRegions. If the type attribute is missing,
+    use the TextRegion's coordinates directly.
     """
     line_data = []
     line_count = 1
 
     for region in text_regions:
         custom_attr = region.attrib.get("custom", "")
-        if "type:paragraph" in custom_attr:
-            text_lines = region.findall("ns:TextLine", namespace)
-            for line in text_lines:
+        coords = region.find("ns:Coords", namespace)
+
+        if coords is not None:
+            points = coords.attrib.get("points", "")
+
+            if "type:paragraph" in custom_attr:
+    
+                text_lines = region.findall("ns:TextLine", namespace)
+                for line in text_lines:
+                    line_id = f"{os.path.splitext(source_image)[0]}_{line_count}"
+                    line_coords = line.find("ns:Coords", namespace)
+                    if line_coords is not None:
+                        points = line_coords.attrib.get("points", "")
+                        line_data.append({
+                            "line_id": line_id,
+                            "line_coordinates": points
+                        })
+                        line_count += 1
+            else:
+                
                 line_id = f"{os.path.splitext(source_image)[0]}_{line_count}"
-                coords = line.find("ns:Coords", namespace)
-                if coords is not None:
-                    points = coords.attrib.get("points", "")
-                    line_data.append({
-                        "line_id": line_id,
-                        "line_coordinates": points
-                    })
-                    line_count += 1
+                line_data.append({
+                    "line_id": line_id,
+                    "line_coordinates": points
+                })
+                line_count += 1
 
     return line_data
 
@@ -47,7 +62,7 @@ def process_xml_file(file_path, namespace):
         return []
     source_image, image_size, image_url = extract_image_info(page, namespace)
     text_regions = page.findall("ns:TextRegion", namespace)
-    line_data = extract_line_info(text_regions, namespace, source_image)
+    line_data = extract_text_lines(text_regions, namespace, source_image)
     for line in line_data:
         line.update({
             "source_image": source_image,
@@ -78,8 +93,8 @@ def process_directory(input_dir, output_file):
 
 def main():
 
-    input_directory = "data/monlam_data"
-    output_file = "data/output/monlam_data.jsonl"
+    input_directory = "data/openpecha_data/annotation_source/3_the_esukhia_data"
+    output_file = "data/openpecha_data/output/esukhia_data.jsonl"
 
     process_directory(input_directory, output_file)
 
