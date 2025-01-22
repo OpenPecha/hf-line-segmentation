@@ -24,5 +24,5 @@ def plot_polygon_on_image(image_path, coordinates):
 
 
 image_path = "/Users/tenkal/Downloads/Image00009_a.jpg"
-coordinates = "152,764 179,765 206,769 233,772 260,775 287,773 314,767 314,725 287,731 260,733 233,730 206,727 179,723 152,722"
+coordinates = "891,26 930,23 930,0 891,0"
 plot_polygon_on_image(image_path, coordinates)

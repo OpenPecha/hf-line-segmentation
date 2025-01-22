@@ -1,6 +1,13 @@
 import os
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 
 
 def find_page_folders(root_dir):
@@ -32,32 +39,34 @@ def rename_update_filter_xml(xml_files, output_without_ann, output_with_ann_and_
         name, ext = os.path.splitext(original_name)
         new_name = f"{name}_{count:03d}.xml"
 
-        # parse the xml to update the page element
-        tree = ET.parse(xml_file)
-        root = tree.getroot()
-        page_tag = root.find(".//ns:Page", namespaces=namespace)
-        if page_tag is None:
-            print(f"Warning: No <Page> tag found in {xml_file}. Skipping file.")
-            continue
+        try:
+            tree = ET.parse(xml_file)
+            root = tree.getroot()
+            page_tag = root.find(".//ns:Page", namespaces=namespace)
+            if page_tag is None:
+                logging.warning(f"No <Page> tag found in {xml_file}. Skipping file.")
+                continue
 
-        if 'imageFilename' in page_tag.attrib:
-            page_tag.set('imageFilename', f"{new_name.replace('.xml', '.jpg')}")
+            if 'imageFilename' in page_tag.attrib:
+                page_tag.set('imageFilename', f"{new_name.replace('.xml', '.jpg')}")
 
-        # check for<TextRegion>in the XML
-        text_region_tag = root.findall(".//ns:TextRegion", namespaces=namespace)
-
-        # determine output dir based on <TextEquiv> tag
-        if text_region_tag:
-            text_equiv_tag = root.findall(".//ns:TextEquiv", namespaces=namespace)
-            if text_equiv_tag:
-                output_path = os.path.join(output_with_ann_and_text_equiv, new_name)
+            # ckeck for <TextRegion> in the xml
+            text_region_tag = root.findall(".//ns:TextRegion", namespaces=namespace)
+            # check for <TextEquiv> in the xml
+            if text_region_tag:
+                text_equiv_tag = root.findall(".//ns:TextEquiv", namespaces=namespace)
+                if text_equiv_tag:
+                    output_path = os.path.join(output_with_ann_and_text_equiv, new_name)
+                else:
+                    output_path = os.path.join(output_with_ann_without_text_equiv, new_name)
             else:
-                output_path = os.path.join(output_with_ann_without_text_equiv, new_name)
-        else:
-            output_path = os.path.join(output_without_ann, new_name)
+                output_path = os.path.join(output_without_ann, new_name)
 
-        tree.write(output_path, encoding="utf-8", xml_declaration=True)
-        renamed_files[original_name].append(new_name)
+            tree.write(output_path, encoding="utf-8", xml_declaration=True)
+            renamed_files[original_name].append(new_name)
+
+        except ET.ParseError as e:
+            logging.error(f"Error parsing {xml_file}: {e}")
 
     return renamed_files
 
@@ -69,8 +78,8 @@ def main(input_dir, output_without_ann, output_with_ann_and_text_equiv, output_w
 
     page_folders = find_page_folders(input_dir)
     xml_files = collect_xml_files(page_folders)
-    rename_update_filter_xml(xml_files, output_without_ann,
-                             output_with_ann_and_text_equiv, output_with_ann_without_text_equiv)
+    rename_update_filter_xml(xml_files, output_without_ann, output_with_ann_and_text_equiv,
+                             output_with_ann_without_text_equiv)
 
 
 if __name__ == "__main__":
@@ -78,5 +87,4 @@ if __name__ == "__main__":
     output_without_ann = "data/openpecha_data/annotation_source/updated_esukhia_data/without_annotation"
     output_with_ann_and_text_equiv = "data/openpecha_data/annotation_source/updated_esukhia_data/with_annotation_and_full_line"
     output_with_ann_without_text_equiv = "data/openpecha_data/annotation_source/updated_esukhia_data/with_annotation_and_only_head"
-    main(input_dir, output_without_ann,
-         output_with_ann_and_text_equiv, output_with_ann_without_text_equiv)
+    main(input_dir, output_without_ann, output_with_ann_and_text_equiv, output_with_ann_without_text_equiv)
