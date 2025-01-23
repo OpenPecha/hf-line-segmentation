@@ -27,12 +27,13 @@ def collect_xml_files(page_folders):
     return xml_files
 
 
-def rename_update_filter_xml(
+def rename_update_sort_xml(
     xml_files,
     output_without_ann,
     output_with_ann_and_text_equiv,
     output_with_ann_without_text_equiv,
 ):
+    """rename, update and sort xml file"""
     file_counts = defaultdict(int)
     renamed_files = defaultdict(list)
     namespace = {
@@ -40,6 +41,7 @@ def rename_update_filter_xml(
     }
 
     for xml_file in xml_files:
+
         original_name = os.path.basename(xml_file)
         file_counts[original_name] += 1
         count = file_counts[original_name]
@@ -92,7 +94,7 @@ def main(
 
     page_folders = find_page_folders(input_dir)
     xml_files = collect_xml_files(page_folders)
-    rename_update_filter_xml(
+    rename_update_sort_xml(
         xml_files,
         output_without_ann,
         output_with_ann_and_text_equiv,
