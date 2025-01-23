@@ -23,6 +23,6 @@ def plot_polygon_on_image(image_path, coordinates):
     plt.show()
 
 
-image_path = "/Users/tenkal/Downloads/002.png"
-coordinates = "1803,56 1804,48 1802,39 1807,26 1819,28 1827,37 1902,35 1910,27 1933,25 1946,34 1968,33 1975,24 1984,25 1988,35 2022,35 2026,24 2038,26 2041,35 2065,35 2064,59 2044,59 2035,73 2028,71 2024,64 1996,67 1986,74 1980,69 1948,71 1931,74 1925,66 1908,66 1847,65 1838,77 1830,65 1810,61"
+image_path = "data/openpecha_data/images/monlam_data_images/xml1/17930743.jpg"
+coordinates = "116,121 116,149 1920,149 1920,121"
 plot_polygon_on_image(image_path, coordinates)
