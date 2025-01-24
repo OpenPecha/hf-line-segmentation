@@ -24,5 +24,5 @@ def plot_polygon_on_image(image_path, coordinates):
 
 
 image_path = "data/openpecha_data/images/monlam_data_images/xml1/17930743.jpg"
-coordinates = "116,121 116,149 1920,149 1920,121"
+coordinates = "74,60 74,254 102,254 102,60"
 plot_polygon_on_image(image_path, coordinates)

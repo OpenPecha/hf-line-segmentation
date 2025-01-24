@@ -26,7 +26,12 @@ def process_jsonl_file(file_path):
                         line_count += 1
                         line_id = f"{source_image.split('.')[0]}_{line_count}"
                         line_coordinates = span.get("points", [])
-                        image_url = f"https://s3.amazonaws.com/monlam.ai.ocr/LineSegmentation/coordinate_image_data/source_image/{source_image}"
+                        # Convert coordinates to float
+                        line_coordinates = [
+                            [float(coord[0]), float(coord[1])]
+                            for coord in line_coordinates
+                        ]
+                        image_url = f"https://s3.amazonaws.com/monlam.ai.ocr/LineSegmentation/coordinate_image_data/source_image/prodigy_method/{source_image}"
 
                         line_data.append(
                             {

@@ -60,7 +60,7 @@ def traverse_and_download_images(root_dir, output_dir):
 
 def main():
     root_directory = "data/openpecha_data/annotation_source/updated_esukhia_data/with_annotation_and_only_head"
-    output_directory = "data/openpecha_data/images/esukhia_data/with_annotation_and_only_head"
+    output_directory = "data/openpecha_data/images/esukhia_data/with_annotation_and_full_line"
     traverse_and_download_images(root_directory, output_directory)
 
 
