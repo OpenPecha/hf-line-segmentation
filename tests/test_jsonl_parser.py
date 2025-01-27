@@ -1,5 +1,3 @@
-import pytest
-import os
 import json
 from src.openpecha_ls_la.jsonl_parser import (
     extract_bdrc_work_id,
